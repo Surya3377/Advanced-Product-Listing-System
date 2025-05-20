@@ -38,7 +38,7 @@ const Pagination = ({
   };
 
   return (
-    <div className="flex justify-center mt-8">
+    <div className="flex justify-center mt-0">
       <nav className="inline-flex items-center space-x-1 bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-md">
         <button
           onClick={() => onPageChange(currentPage - 1)}

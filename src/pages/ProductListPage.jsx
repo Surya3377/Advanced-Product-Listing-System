@@ -6,6 +6,7 @@ import {
   setCurrentPage,
   setSortBy,
 } from "../features/productsSlice";
+import { addToCart } from "../features/cartSlice"; // Import the addToCart action
 import FilterSidebar from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
 import ProductList from "./ProductList";
@@ -14,6 +15,7 @@ import SearchBar from "./Searchbar";
 import Loader from "./Loader";
 import CompareBar from "./CompareBar";
 import CompareModal from "./CompareModal";
+import { toast } from "react-toastify"; // Import toast for notifications
 
 const ProductListingPage = () => {
   const dispatch = useDispatch();
@@ -43,6 +45,9 @@ const ProductListingPage = () => {
   const isCompareModalOpen = useSelector(
     (state) => state.compare.isCompareModalOpen
   );
+
+  // Add cart items from state
+  const cartItems = useSelector((state) => state.cart.items);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -87,6 +92,12 @@ const ProductListingPage = () => {
 
   const toggleMobileFilters = () => {
     setMobileFiltersOpen(!mobileFiltersOpen);
+  };
+
+  // Add to cart handler function
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+    toast.success(`${product.name} added to cart!`);
   };
 
   if (status === "failed") {
@@ -140,9 +151,9 @@ const ProductListingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container px-4 py-8 mx-auto">
+      <div className="container px-2 py-4 mx-auto">
         {/* Header with search and total count */}
-        <div className="p-6 mb-8 bg-white rounded-xl shadow-md">
+        <div className="p-1 mb-1 bg-white rounded-xl shadow-md">
           <div className="flex flex-col gap-6 md:flex-row md:items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
@@ -155,6 +166,33 @@ const ProductListingPage = () => {
             <div className="w-full md:w-auto">
               <SearchBar />
             </div>
+          </div>
+        </div>
+
+        {/* Cart indicator */}
+        <div className="flex justify-end mb-0">
+          <div className="relative">
+            <button className="flex items-center justify-center p-2 bg-white rounded-full shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              {cartItems && cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -216,7 +254,7 @@ const ProductListingPage = () => {
                 transform transition-transform duration-300 ease-in-out
                 h-full w-4/5 max-w-xs bg-white md:bg-transparent fixed md:sticky
                 top-0 left-0 md:top-6 overflow-y-auto z-50 md:z-auto
-                p-6 md:p-0
+                p-6 md:p-0 filters
               `}
             >
               <div className="flex items-center justify-between mb-6 md:hidden">
@@ -252,7 +290,7 @@ const ProductListingPage = () => {
           {/* Main content */}
           <div className="flex-grow">
             {/* Sorting and view options */}
-            <div className="p-4 mb-6 bg-white rounded-xl shadow-md">
+            <div className="p-1 mb-2 bg-white rounded-xl shadow-md">
               <div className="flex flex-col items-start sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center">
                   <span className="mr-3 text-gray-700 font-medium">
@@ -338,12 +376,20 @@ const ProductListingPage = () => {
                 </div>
               ) : products.length > 0 ? (
                 <div>
-                  <div className="p-6 max-h-500 overflow-y-auto scrollbar">
-                    {viewMode === "grid" ? (
-                      <ProductGrid products={products} />
-                    ) : (
-                      <ProductList products={products} />
-                    )}
+                  <div className="p-6">
+                    <div className="max-h-500 overflow-y-auto scrollbar">
+                      {viewMode === "grid" ? (
+                        <ProductGrid
+                          products={products}
+                          onAddToCart={handleAddToCart}
+                        />
+                      ) : (
+                        <ProductList
+                          products={products}
+                          onAddToCart={handleAddToCart}
+                        />
+                      )}
+                    </div>
                   </div>
                   {/* Pagination */}
                   <div className="border-t border-gray-200">
